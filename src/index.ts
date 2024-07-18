@@ -14,10 +14,10 @@ function OptimizeExclude(options: OptimizeExcludeOptions = {}): Plugin {
       const result = await scanPackagesList()
 
       if (options.debug) {
-        console.debug('[Optimize Exclude] ESM packages:')
-        console.debug([...result.esm].map(i => `  ${i}`).join('\n'))
-        console.debug('[Optimize Exclude] Non-ESM packages:')
-        console.debug([...result.nonEsm].map(i => `  ${i}`).join('\n'))
+        console.log('[Optimize Exclude] ESM packages:')
+        console.log([...result.esm].map(i => `  ${i}`).join('\n'))
+        console.log('[Optimize Exclude] Non-ESM packages:')
+        console.log([...result.nonEsm].map(i => `  ${i}`).join('\n'))
       }
       const exclude = [...result.esm]
         .filter(name => !config.optimizeDeps?.include?.includes(name))
