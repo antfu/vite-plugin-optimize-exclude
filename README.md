@@ -6,7 +6,116 @@
 [![JSDocs][jsdocs-src]][jsdocs-href]
 [![License][license-src]][license-href]
 
-Exclude ESM dependencies from Vite optimization
+Exclude ESM dependencies from Vite optimization. To reduce the chance of "New dependencies detected" page reloads.
+
+## How it works?
+
+[Vite's deps optimize feature](https://vitejs.dev/guide/dep-pre-bundling.html) use `esbuild` to bundle all discovered dependencies into multiple chunks, where common dependencies will be bundled into a shared chunk. For example, the dependency tree of `vue-router` and `pinia` would look like this:
+
+```mermaid
+stateDiagram-v2
+  A: vue-router
+  B: pinia
+  C: vue
+  D: @vue/runtime-dom
+  E: @vue/runtime-core
+  F: @vue/reactivity
+  G: @vue/shared
+  A --> C
+  B --> C
+  C --> D
+  D --> E
+  E --> F
+  F --> G
+```
+
+After deps optimize, esbuild will detect that vue-related packages are common dependencies of `vue-router` and `pinia`, and bundle them into a shared chunk:
+
+```mermaid
+stateDiagram-v2
+  CC: Common Chunk 1ab42e
+  A: vue-router
+  B: pinia
+  C: vue
+  D: @vue/runtime-dom
+  E: @vue/runtime-core
+  F: @vue/reactivity
+  G: @vue/shared
+  A --> CC
+  B --> CC
+  state CC {
+    [*] --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+  }
+```
+
+This usually works well. But when a new dependency is discovered and it uses things from the shared chunk that was not exposed in the chunk entry, for example, `@vueuse/core` deps in `@vue/runtime-core`, the story becomes:
+
+```mermaid
+stateDiagram-v2
+  CC: Common Chunk 1ab42e
+  A: vue-router
+  B: pinia
+  C: vue
+  D: @vue/runtime-dom
+  E: @vue/runtime-core
+  F: @vue/reactivity
+  G: @vue/shared
+  H: @vueuse/core
+  I: @vueuse/shared
+  A --> CC
+  B --> CC
+  H --> I
+  I --> E
+  state CC {
+    [*] --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+  }
+```
+
+Which won't work, so the chunks need to be regenerated:
+
+```mermaid
+stateDiagram-v2
+  CC: Common Chunk a91c24
+  A: vue-router
+  B: pinia
+  C: vue
+  D: @vue/runtime-dom
+  E: @vue/runtime-core
+  F: @vue/reactivity
+  G: @vue/shared
+  H: @vueuse/core
+  I: @vueuse/shared
+  A --> CC
+  B --> CC
+  H --> CC
+
+  state CC {
+    [*] --> C
+    [*] --> I
+    I --> E
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+  }
+```
+
+In that case, because the old chunk is already executed in the browser, we have to do a page refresh to get the latest chunk. Theoretically, this happens every time when you introduce a new dependency that imports `vue`, or any other packages that are already in common chunks. This is one of the reasons you might encounter the annoying page reloads consistently.
+
+While Vite's deps optimization is mostly used for converting CJS dependencies to ESM (and might also reduce the file count), as more and more libraries are published in ESM, for many dependencies we don't actually need to optimize them anymore.
+
+This plugin scans your `node_modules` and **excludes all ESM dependencies** from the optimization process. Fewer packages to be preoptimized, less work to do, and less chance of encountering the shared chunk issue.
+
+> [!NOTE]
+> The more dependents a package has, the more important for it to be ESM-ready so all the dependents can benefit from bypassing the optimization. For example, the popular `react` package is still in CJS, meaning that we can't bail out of the optimization process for `react` and all its dependents. The community should help to push the ecosystem towards ESM.
 
 ## Sponsors
 
