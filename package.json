@@ -47,6 +47,9 @@
     "typecheck": "tsc --noEmit",
     "prepare": "simple-git-hooks"
   },
+  "peerDependencies": {
+    "vite": ">=2.0.0"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^2.23.0",
     "@antfu/ni": "^0.22.0",
