@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-optimize-exclude",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "packageManager": "pnpm@9.5.0",
   "description": "Exclude ESM dependencies from Vite optimization",
   "author": "Anthony Fu <anthonyfu117@hotmail.com>",
