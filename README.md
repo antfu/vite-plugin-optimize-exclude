@@ -8,6 +8,45 @@
 
 Exclude ESM dependencies from Vite optimization. To reduce the chance of "New dependencies detected" page reloads.
 
+## Install
+
+### Vite
+
+```bash
+npm i vite-plugin-optimize-exclude -D
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import OptimizeExclude from 'vite-plugin-optimize-exclude'
+
+export default defineConfig({
+  plugins: [
+    OptimizeExclude()
+  ]
+})
+```
+
+### Nuxt
+
+```bash
+npm i vite-plugin-optimize-exclude -D
+```
+
+```ts
+// nuxt.config.ts
+import OptimizeExclude from 'vite-plugin-optimize-exclude'
+
+export default defineNuxtConfig({
+  vite: {
+    plugins: [
+      OptimizeExclude()
+    ]
+  }
+})
+```
+
 ## How it works?
 
 [Vite's deps optimize feature](https://vitejs.dev/guide/dep-pre-bundling.html) use `esbuild` to bundle all discovered dependencies into multiple chunks, where common dependencies will be bundled into a shared chunk. For example, the dependency tree of `vue-router` and `pinia` would look like this:
